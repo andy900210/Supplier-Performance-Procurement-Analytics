@@ -1,79 +1,45 @@
 # Supplier Performance & Procurement Analytics
 
-## Project Overview
+Supplier evaluation framework for an e-commerce marketplace — reliability scoring, concentration risk, and cost optimization. Built on Google BigQuery.
 
-An end-to-end supplier evaluation and procurement analytics framework built on Google BigQuery, analyzing 100K+ e-commerce orders across 3,000+ suppliers to optimize procurement decisions, reduce supply chain risk, and identify cost savings opportunities.
+## Background
 
-**Platform:** Google BigQuery  
-**Dataset:** Brazilian e-commerce marketplace (Olist — public dataset)  
-**Scale:** 99,441 orders | 112,650 order items | 3,095 sellers | 32,951 products
+This project grew out of a simple question: if you have 3,000 suppliers, how do you decide which ones to grow, which to coach, and which to cut?
 
----
+I used the same Olist Brazilian e-commerce dataset as my delivery performance project, but reframed it entirely from a procurement perspective. Instead of asking "are orders arriving on time?" I asked "which suppliers are creating the problems, and what would it cost to fix or replace them?"
 
-## Business Context
+The answer turned out to be uncomfortable: the worst-performing suppliers are also the highest-volume ones. They're too embedded to simply cut, which is exactly the kind of messy reality that makes procurement analytics valuable.
 
-A mid-size e-commerce marketplace needs to:
-1. Evaluate supplier reliability and quality at scale
-2. Identify procurement concentration risks before they become supply disruptions
-3. Optimize logistics costs without sacrificing delivery performance
-4. Build a data-driven supplier tiering system for strategic decisions
+## Data
 
----
+Same Olist dataset, different lens:
+- 2,970 active sellers evaluated
+- 112,650 order items with delivery tracking and customer reviews
+- Analyzed across volume, revenue, delivery, quality, and cost dimensions
 
-## Analytical Modules
+## What I Found
 
-| Module | Focus Area | Key Deliverable |
-|--------|-----------|-----------------|
-| 1 | Data Model | `supplier_master` view — 20+ KPIs per supplier |
-| 2 | Reliability Matrix | 4-quadrant classification (Star/Reliable/Risky/Exit) |
-| 3 | Kraljic Portfolio Matrix | Strategic category segmentation for procurement |
-| 4 | Lead Time Variability | Risk scoring by delivery consistency (CV analysis) |
-| 5 | Supplier Concentration | HHI index + single-source dependency identification |
-| 6 | Cost Optimization | Freight benchmarking by route and category |
-| 7 | Supplier Scorecard | Weighted composite score (5 dimensions) |
+**31% of suppliers should be phased out** — but they generate the most revenue ($4.3M BRL). The "Exit" quadrant has higher average orders (92.6) than the "Star" quadrant (61.5). Classic "too big to fail" supplier dependency.
 
----
+**The marketplace looks diversified until you drill into categories.** Overall HHI is 44 (extremely competitive). But at the category level, 15 out of 15 analyzed categories are "Highly Concentrated" — with top-3 suppliers controlling 100% in 9 of them. One furniture supplier going down takes $186K in revenue with it.
 
-## Key Findings
+**83% of suppliers have unpredictable delivery times.** Average delivery days are similar across risk tiers (~11-12 days) — the problem isn't speed, it's consistency. A supplier delivering in 5 days one week and 25 the next is worse than one consistently at 15.
 
-### Supplier Reliability (Module 2)
-- **31% of suppliers classified as "Exit" candidates** — yet they generate the most revenue (4.3M BRL), indicating deep dependency on underperformers
-- "Star" suppliers are under-utilized (avg 61.5 orders vs. 92.6 for "Exit" tier)
-- Clear opportunity to shift volume from Exit → Star suppliers
+**$215K BRL in freight savings identified** by benchmarking all categories to a 20% freight-to-revenue ratio. Electronics is the worst offender at 42.4% — shipping costs nearly match product value.
 
-### Procurement Risk (Module 5)
-- Marketplace-level HHI = 43.74 (highly competitive overall)
-- **Category-level concentration is critical:** 15 categories have HHI > 2,500 (highly concentrated)
-- Office furniture: 70% of revenue depends on a single supplier (186K BRL at risk)
-- 9 out of 15 analyzed categories have top-3 suppliers controlling 100% of volume
+**Quality and cost-efficiency are correlated, not traded off.** The top 5% of suppliers (by composite score) also have the lowest freight costs at 13.5%. The bottom tier pays 38% — nearly 3x more. Good suppliers are cheap; bad suppliers are expensive in every dimension.
 
-### Delivery Consistency (Module 4)
-- **83% of suppliers are in High or Critical risk tiers** (CV > 50%)
-- $11M BRL in revenue flows through suppliers with unpredictable delivery times
-- Critical risk suppliers have the MOST orders (avg 94.1) — volume drives inconsistency
+## Modules
 
-### Cost Optimization (Module 6)
-- **215K BRL in identified freight savings** if all categories benchmark to 20% freight ratio
-- Electronics category: 42.4% freight-to-revenue ratio (critical — logistics eating margin)
-- Furniture/decor: largest absolute savings opportunity (79.9K BRL)
-- State pattern: São Paulo (763 sellers) has only 91.2% on-time rate despite being the logistics hub
-
-### Supplier Scorecard (Module 7)
-- Only **5% of suppliers earn "Preferred" status** — they also have the lowest freight costs (13.5%)
-- Quality and cost-efficiency are positively correlated — best suppliers are cheapest
-- 93 suppliers (8%) in "Conditional" tier paying 38.1% freight — 3x the preferred tier rate
-
----
-
-## Technical Skills Demonstrated
-
-- **Google BigQuery:** Complex multi-CTE queries, window functions, statistical functions (STDDEV, APPROX_QUANTILES, PERCENT_RANK)
-- **Data Modeling:** Dimensional design, aggregated master views, normalized scoring
-- **Supply Chain Analytics:** Kraljic matrix, HHI concentration index, coefficient of variation, ABC classification
-- **Statistical Methods:** Min-max normalization, weighted composite scoring, percentile ranking
-- **Business Framing:** Translating analytical findings into actionable procurement recommendations
-
----
+| # | What it does |
+|---|-------------|
+| 01 | `supplier_master` view — 20+ KPIs per seller in one row |
+| 02 | Reliability Matrix — Star/Reliable/Risky/Exit quadrants |
+| 03 | Kraljic Matrix — strategic category segmentation |
+| 04 | Lead Time Variability — coefficient of variation risk scoring |
+| 05 | Concentration Analysis — HHI and single-source dependency |
+| 06 | Cost Optimization — freight benchmarking, savings quantification |
+| 07 | Weighted Scorecard — 5-dimension composite supplier ranking |
 
 ## Project Structure
 
@@ -91,19 +57,14 @@ A mid-size e-commerce marketplace needs to:
     └── findings_summary.md
 ```
 
----
+## How to Run
 
-## How to Reproduce
-
-1. Load the [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) into BigQuery
+1. Load the [Olist dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) into BigQuery
 2. Create a dataset named `supplier_procurement_analytics`
-3. Run SQL scripts in order (01 → 07)
-4. Module 01 creates the foundation view; Modules 02–07 are independent analytical queries
-
----
+3. Run scripts in order — 01 builds the view, 02-07 are independent queries
 
 ## About
 
-Built by Andy Yin — Supply Chain Data Specialist with 10+ years of experience in data warehouse engineering. This project demonstrates equivalent analytical approaches to real-world supplier management challenges using public data, due to confidentiality agreements with current employer.
+I built this to show what procurement analytics actually looks like beyond "rate your suppliers 1-5." Real supplier management means understanding concentration risk, delivery variability, cost structures, and how they interact. The Kraljic matrix and HHI analysis are frameworks I've used professionally — applied here to public data for demonstration purposes.
 
-**Contact:** [LinkedIn](https://www.linkedin.com/in/andy900210) | [GitHub](https://github.com/andy900210)
+Andy Yin — [LinkedIn](https://www.linkedin.com/in/andy900210) | [GitHub](https://github.com/andy900210)
